@@ -21,7 +21,7 @@ class WorldState {
 
      WorldState() {
          this->kernelsAmount = 3;
-         this->disksAmount = 5;
+         this->disksAmount = 3;
 
          this->kernels = new Disk** [this->kernelsAmount];
          for (int k = 0; k < kernelsAmount; k++) {
