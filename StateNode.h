@@ -15,6 +15,7 @@ class StateNode {
     StateNode* root;
     StateNode* parent;
     std::string madeFromMove;
+    bool solved;
 
     StateNode(WorldState* worldState, int pathCost) {
         this->worldState = worldState;
@@ -24,9 +25,14 @@ class StateNode {
         this->childStates = NULL;
         this->parent = NULL;
         this->madeFromMove = "";
+        this->solved = false;
     }
     
     void solve(WorldState* goalState, std::list<StateNode*>* victoryNodes) {
+        if (this->solved)
+            return;
+        this->solved = true;
+        
         this->generateNodes();
         for (int c = 0; c < this->childStatesAmount; c++) {
             if (this->childStates[c]->worldState->same(goalState) == false) {
@@ -72,9 +78,15 @@ class StateNode {
         StateNode* newWorldState = makeNewStateNodeByReplacement(fromK, fromD, toK, toD);
         StateNode* dublicate = this->root->getDublicate(newWorldState);
         
-        if (dublicate == NULL) {// || newWorldState->pathCost < dublicate->pathCost) { // find best solution
+        if (dublicate == NULL) {
             this->childStates[this->childStatesAmount] = newWorldState;
             this->childStatesAmount += 1;
+        } else if (newWorldState->pathCost < dublicate->pathCost) {
+            this->childStates[this->childStatesAmount] = dublicate;
+            this->childStatesAmount += 1;
+            dublicate->updatePathCost(newWorldState->pathCost);
+            dublicate->parent = this;
+            delete newWorldState;
         }
     }
 
@@ -101,6 +113,17 @@ class StateNode {
                 return dublicate;
         }
         return NULL;
+    }
+    
+    void updatePathCost(int newPathCost) {
+        this->pathCost = newPathCost;
+        newPathCost++;
+        for (int c = 0; c < this->childStatesAmount; c++) {
+            if (this->childStates[c]->pathCost > newPathCost) {
+                this->childStates[c]->updatePathCost(newPathCost);
+                this->childStates[c]->parent = this;
+            }
+        }
     }
     
     void printPath() {
